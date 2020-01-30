@@ -1,0 +1,33 @@
+---
+
+- hosts: "pm1"
+  become: true
+  become_user: root
+  vars_files:
+    - 'distro/{{ ansible_os_family|lower }}.yml'
+
+  tasks:
+
+  - name: "Removing Conflicting Software Package"
+    package:
+      name: '{{ mariadb_libs }}'
+      state: absent
+
+  - name: "Installing MariaDB ColumnStore"
+    package:
+      name: '{{ packages }}'
+      state: present
+    vars:
+      packages:
+      - '{{ mariadb_server }}'
+      - '{{ mariadb_columnstore_platform }}'
+      - '{{ mariadb_columnstore_engine }}'
+
+  - name: "Running MariaDB ColumnStore Post Install Script"
+    shell: /usr/bin/columnstore-post-install
+
+  - name: "Making Sure MariaDB ColumnStore Cluster Is Not Running"
+    shell: mcsadmin shutdownSystem y
+
+  - name: "Running Simplified MariaDB ColumnStore PostConfigure"
+    shell: postConfigure -qs

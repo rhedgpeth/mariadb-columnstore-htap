@@ -1,0 +1,86 @@
+---
+
+- hosts: "pm1"
+  become: true
+  become_user: root
+  vars_files:
+    - 'distro/{{ ansible_os_family|lower }}.yml'
+
+  tasks:
+
+  - name: "Installing MySQL Python Package"
+    pip:
+      name: 'PyMySQL'
+
+  - name: "Removing root@::1 User From Database"
+    mysql_user:
+      name: root
+      host: '::1'
+      state: absent
+      login_unix_socket: '{{ mariadb_socket }}'
+
+  - name: "Removing 'Test' Database"
+    mysql_db:
+      name: test
+      state: absent
+      login_unix_socket: '{{ mariadb_socket }}'
+
+  - name: "Adding {{ dba_user }}@localhost User To Database"
+    mysql_user:
+      name: '{{ dba_user }}'
+      host: 'localhost'
+      password: '{{ dba_pass }}'
+      update_password: on_create
+      priv: '*.*:ALL,GRANT'
+      state: present
+      login_unix_socket: '{{ mariadb_socket }}'
+
+  - name: "Adding {{ dba_user }}@127.0.0.1 User To Database"
+    mysql_user:
+      name: '{{ dba_user }}'
+      host: '127.0.0.1'
+      password: '{{ dba_pass }}'
+      update_password: on_create
+      priv: '*.*:ALL,GRANT'
+      state: present
+      login_unix_socket: '{{ mariadb_socket }}'
+
+  - name: "Adding {{ dba_user }}@10.% User To Database"
+    mysql_user:
+      name: '{{ dba_user }}'
+      host: '10.%'
+      password: '{{ dba_pass }}'
+      update_password: on_create
+      priv: '*.*:ALL,GRANT'
+      state: present
+      login_unix_socket: '{{ mariadb_socket }}'
+
+  - name: "Adding {{ cross_engine_user }}@localhost User To Database"
+    mysql_user:
+      name: '{{ cross_engine_user }}'
+      host: 'localhost'
+      password: '{{ cross_engine_pass }}'
+      update_password: on_create
+      priv: '*.*:SELECT'
+      state: present
+      login_unix_socket: '{{ mariadb_socket }}'
+
+  - name: "Adding {{ cross_engine_user }}@127.0.0.1 User To Database"
+    mysql_user:
+      name: '{{ cross_engine_user }}'
+      host: '127.0.0.1'
+      password: '{{ cross_engine_pass }}'
+      update_password: on_create
+      priv: '*.*:SELECT'
+      state: present
+      login_unix_socket: '{{ mariadb_socket }}'
+
+  - name: "Adding {{ cross_engine_user }}@10.% User To Database"
+    mysql_user:
+      name: '{{ cross_engine_user }}'
+      host: '10.%'
+      password: '{{ cross_engine_pass }}'
+      update_password: on_create
+      priv: '*.*:SELECT'
+      state: present
+      login_unix_socket: '{{ mariadb_socket }}'

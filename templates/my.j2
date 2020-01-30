@@ -1,0 +1,138 @@
+###############################################################
+# General Settings
+###############################################################
+[client]
+socket                                        	= {{ mariadb_socket }}
+port                                          	= 3306
+
+[mysql]
+socket                                        	= {{ mariadb_socket }}
+port                                          	= 3306
+default_character_set                         	= utf8
+no-auto-rehash
+
+[mysqld]
+socket                                        	= {{ mariadb_socket }}
+port                                          	= 3306
+tmpdir                                        	= {{ tmpdir }}
+server_id                                     	= 1
+sql_mode                                      	= "ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
+gtid_domain_id                                	= 1
+character_set_server                          	= utf8
+collation_server                              	= utf8_general_ci
+init_connect                                  	= 'SET NAMES utf8'
+user                                          	= mysql
+default_storage_engine                        	= InnoDB
+userstat                                      	= ON
+feedback                                      	= OFF
+group_concat_max_len                          	= 512
+max_length_for_sort_data                      	= 8M
+skip-external-locking
+performance_schema
+skip_name_resolve
+
+################################################################
+# Safety, Security, Compatibility & Recovery
+################################################################
+symbolic_links                                	= 0
+explicit_defaults_for_timestamp               	= 1
+log_bin_trust_function_creators               	= 1
+lower_case_table_names                        	= 1
+ignore_db_dirs                                	= lost+found
+myisam_recover_options                        	= FORCE,BACKUP
+max_allowed_packet                            	= 32M
+slave_max_allowed_packet                      	= 32M
+max_connect_errors                            	= 1000000
+
+################################################################
+# Caches, Buffers & Connections
+################################################################
+query_cache_type                              	= 0
+query_cache_size                              	= 0
+open_files_limit                              	= 65535
+table_open_cache                              	= 4096
+table_definition_cache                        	= 4096
+thread_cache_size                             	= 256
+back_log                                      	= 200
+thread_stack                                  	= 512K
+max_connections                               	= 500
+wait_timeout                                  	= 600
+interactive_timeout                           	= 600
+join_buffer_size                              	= 16M
+key_buffer_size                               	= 16M
+tmp_table_size                                	= {{ (ansible_memtotal_mb/512)|round|int }}M
+max_heap_table_size                           	= {{ (ansible_memtotal_mb/512)|round|int }}M
+
+################################################################
+# HTAP Replication
+################################################################
+binlog_format                                 	= STATEMENT
+replicate_same_server_id                      	= 1
+log_slave_updates                             	= 0
+
+################################################################
+# MySQL Logs
+################################################################
+log_bin                                       	= /var/log/mariadb/mysql-bin
+log_bin_index                                 	= /var/log/mariadb/mysql-bin.index
+log_error                                     	= /var/log/mariadb/mysql-error.log
+slow_query_log_file                           	= /var/log/mariadb/mysql-slow.log
+expire_logs_days                              	= 3
+sync_binlog                                   	= 1
+slow_query_log                                	= 1
+log_queries_not_using_indexes                 	= 0
+log_warnings                                  	= 2
+log_slow_verbosity                            	= query_plan
+long_query_time                               	= 5
+
+################################################################
+# InnoDB Variables
+################################################################
+innodb_file_per_table                         	= ON
+innodb_buffer_pool_instances                  	= 8
+innodb_buffer_pool_size                       	= {{ (ansible_memtotal_mb/2 * 0.66)|round|int }}M
+innodb_flush_log_at_trx_commit                	= 1
+innodb_log_buffer_size                        	= 16M
+innodb_log_file_size                          	= 1G
+innodb_autoinc_lock_mode                      	= 2
+innodb_rollback_on_timeout                    	= ON
+innodb_thread_concurrency                     	= 0
+innodb_print_all_deadlocks                    	= ON
+innodb_defragment                             	= ON
+
+################################################################
+# Extra Variables
+################################################################
+[mysqldump]
+quick
+max_allowed_packet                            	= 16M
+
+[mysql]
+no-auto-rehash
+
+[isamchk]
+key_buffer_size                               	= 256M
+sort_buffer_size                              	= 256M
+read_buffer                                   	= 2M
+write_buffer                                  	= 2M
+
+[myisamchk]
+key_buffer_size                               	= 256M
+sort_buffer_size                              	= 256M
+read_buffer                                   	= 2M
+write_buffer                                  	= 2M
+
+[mysqlhotcopy]
+interactive-timeout
+
+
+################################################################
+# Extra Variables
+################################################################
+
+[client-server]
+{% if ansible_os_family == 'Debian' %}
+!includedir /etc/mysql/conf.d/
+{% else %}
+!includedir /etc/my.cnf.d
+{% endif %}

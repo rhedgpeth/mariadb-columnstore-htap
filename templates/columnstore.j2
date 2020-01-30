@@ -1,0 +1,30 @@
+################################################################
+# ColumnStore Plugin Load
+################################################################
+[mysqld]
+plugin-load-add=ha_columnstore.so
+
+################################################################
+# ColumnStore Variables
+###############################################################
+columnstore_compression_type                     	 = SNAPPY
+columnstore_decimal_scale                        	 = 8
+columnstore_derived_handler                      	 = ON
+columnstore_diskjoin_bucketsize                  	 = 100
+columnstore_diskjoin_largesidelimit              	 = 0
+columnstore_diskjoin_smallsidelimit              	 = 0
+columnstore_double_for_decimal_math              	 = OFF
+columnstore_group_by_handler                     	 = ON
+columnstore_import_for_batchinsert_delimiter     	 = 7
+columnstore_import_for_batchinsert_enclosed_by   	 = 17
+columnstore_local_query                          	 = 0
+columnstore_orderby_threads                      	 = 16
+columnstore_ordered_only                         	 = OFF
+columnstore_replication_slave                    	 = ON
+columnstore_select_handler                       	 = ON
+columnstore_string_scan_threshold                	 = 10
+columnstore_stringtable_threshold                	 = 20
+columnstore_um_mem_limit                         	 = 0
+columnstore_use_decimal_scale                    	 = OFF
+columnstore_use_import_for_batchinsert           	 = ON
+columnstore_varbin_always_hex

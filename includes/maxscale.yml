@@ -1,0 +1,60 @@
+---
+
+- hosts: "mx1"
+  become: true
+  become_user: root
+  vars_files:
+    - '../includes/distro/{{ ansible_os_family|lower }}.yml'
+
+  tasks:
+
+  - name: "Installing Some Basic Packages"
+    package:
+      name: '{{ packages }}'
+      state: present
+    vars:
+      packages:
+      - '{{ git }}'
+      - '{{ mariadb_client }}'
+      - '{{ mysql_python }}'
+      - '{{ nano }}'
+
+  - name: "Installing MaxScale"
+    package:
+      name: maxscale
+      state: present
+
+  - name: "Removing Old Secrets If Necessary"
+    file:
+      path: /var/lib/maxscale/.secrets
+      state: absent
+
+  - name: "Creating New Secrets"
+    command: maxkeys /var/lib/maxscale/
+
+  - name: "Changing Owner Of Secrets"
+    file:
+      path: /var/lib/maxscale/.secrets
+      state: touch
+      owner: maxscale
+      group: maxscale
+
+  - name: "Creating Encrypted Password"
+    command: maxpasswd /var/lib/maxscale/ {{ dba_pass }}
+    register: hexadecimal
+
+  - name: "Copying rules.txt"
+    template:
+      src: ../templates/rules.j2
+      dest: /etc/maxscale.modules.d/rules.txt
+
+  - name: "Copying maxscale.cnf"
+    template:
+      src: ../templates/maxscale.j2
+      dest: /etc/maxscale.cnf
+
+  - name: "Restarting MaxScale"
+    systemd:
+      name: maxscale
+      enabled: true
+      state: restarted

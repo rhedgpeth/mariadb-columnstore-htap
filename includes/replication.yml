@@ -1,0 +1,63 @@
+---
+
+- hosts: "pm1"
+  become: true
+  become_user: root
+  vars_files:
+    - 'distro/{{ ansible_os_family|lower }}.yml'
+
+  tasks:
+
+  - name: "Restarting MariaDB ColumnStore System"
+    shell: mcsadmin restartSystem y
+
+  - name: "Stopping Slave"
+    mysql_replication:
+      mode: stopslave
+      login_host: '{{ hostvars.pm1.ansible_host }}'
+      login_port: 3306
+      login_user: '{{ dba_user }}'
+      login_password: '{{ dba_pass }}'
+
+  - name: "Copying Sample Schemas"
+    copy:
+      src: ../data/sample_schemas.sql
+      dest: /tmp/
+
+  - name: "Loading Sample Schemas"
+    mysql_db:
+      name: mysql
+      state: import
+      target: /tmp/sample_schemas.sql
+      login_host: '{{ hostvars.pm1.ansible_host }}'
+      login_port: 3306
+      login_user: '{{ dba_user }}'
+      login_password: '{{ dba_pass }}'
+
+  - name: "Configuring Replication"
+    mysql_replication:
+      mode: changemaster
+      master_host: '{{ hostvars.mx1.ansible_host }}'
+      master_port: 3309
+      master_user: '{{ dba_user }}'
+      master_password: '{{ dba_pass }}'
+      login_host: '{{ hostvars.pm1.ansible_host }}'
+      login_port: 3306
+      login_user: '{{ dba_user }}'
+      login_password: '{{ dba_pass }}'
+
+  - name: "Setting GTID Position"
+    command: mysql -e "CHANGE MASTER TO master_use_gtid=current_pos";
+
+  - name: "Starting Replication"
+    mysql_replication:
+      mode: startslave
+      login_host: '{{ hostvars.pm1.ansible_host }}'
+      login_port: 3306
+      login_user: '{{ dba_user }}'
+      login_password: '{{ dba_pass }}'
+
+  - name: "Copying Sample Data"
+    copy:
+      src: ../data/orders.csv
+      dest: /tmp/

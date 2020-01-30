@@ -1,0 +1,83 @@
+---
+
+- hosts: "pm1"
+  become: true
+  become_user: root
+  vars_files:
+    - 'distro/{{ ansible_os_family|lower }}.yml'
+
+  tasks:
+
+  - name: "Creating Custom MariaDB Temporary Folder"
+    file:
+      path: '{{ tmpdir }}'
+      state: directory
+      owner: mysql
+      group: mysql
+
+  - name: "Creating Custom MariaDB MySQL Log Folder"
+    file:
+      path: /var/log/mariadb/
+      state: directory
+
+  - name: "Changing Ownership Of MariaDB Log Folder"
+    file:
+      path: /var/log/mariadb/
+      recurse: yes
+      owner: mysql
+      group: mysql
+
+  - name: "Removing System Default my.cnf File"
+    file:
+      path: /etc/my.cnf
+      state: absent
+    when: ansible_os_family == 'RedHat'
+
+  - name: "Creating Custom MariaDB my.cnf"
+    template:
+      src: '../templates/my.j2'
+      dest: /etc/my.cnf
+      owner: root
+      group: root
+    when: ansible_os_family == 'RedHat'
+
+  - name: "Creating Custom MariaDB my.cnf"
+    template:
+      src: '../templates/my.j2'
+      dest: /etc/mysql/my.cnf
+      owner: root
+      group: root
+    when: ansible_os_family == 'Debian'
+
+  - name: "Creating Custom columnstore.cnf"
+    template:
+      src: '../templates/columnstore.j2'
+      dest: /etc/my.cnf.d/columnstore.cnf
+      owner: root
+      group: root
+    when: ansible_os_family == 'RedHat'
+
+  - name: "Creating Custom columnstore.cnf"
+    template:
+      src: '../templates/columnstore.j2'
+      dest: /etc/mysql/conf.d/columnstore.cnf
+      owner: root
+      group: root
+    when: ansible_os_family == 'Debian'
+
+  - name: "Setting up Cross Engine Join User"
+    lineinfile:
+      path: /etc/columnstore/Columnstore.xml
+      regexp: '<User>root</User>'
+      line: "\t\t<User>{{ cross_engine_user }}</User>"
+      state: present
+
+  - name: "Setting up Cross Engine Join Password"
+    lineinfile:
+      path: /etc/columnstore/Columnstore.xml
+      regexp: '<Password/>'
+      line: "\t\t<Password>{{ cross_engine_pass }}</Password>"
+      state: present
+
+  - name: "Restarting MariaDB ColumnStore System"
+    shell: mcsadmin restartSystem y

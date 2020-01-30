@@ -1,0 +1,24 @@
+---
+
+- hosts: "all"
+  become: True
+  become_user: root
+  gather_facts: False
+
+#  pre_tasks:
+#
+#    - name: "Finding Python Interpreter"
+#      raw: which /usr/bin/python || which /usr/bin/python3
+#      register: py_interpreter
+#      changed_when: py_interpreter.stdout != ''
+#
+#    - name: "Setting Temporary Python Interpreter"
+#      set_fact:
+#        ansible_python_interpreter: '{{ py_interpreter.stdout }}'
+
+- import_playbook: includes/prepare.yml
+- import_playbook: includes/install.yml
+- import_playbook: includes/customize.yml
+- import_playbook: includes/creds.yml
+- import_playbook: includes/maxscale.yml
+- import_playbook: includes/replication.yml

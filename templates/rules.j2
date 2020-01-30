@@ -1,0 +1,4 @@
+rule protect_system_tables match regex 'mysql.*' on_queries drop|alter|create|use|load
+rule protect_columnstore_info_tables match regex 'columnstore_info.*' on_queries drop|alter|create|use|load
+rule protect_infinidb_querystats_tables match regex 'infinidb_querystats.*' on_queries drop|alter|create|use|load
+users %@% match any rules protect_system_tables protect_columnstore_info_tables protect_infinidb_querystats_tables

@@ -1,0 +1,11 @@
+---
+
+system_name: MyColumnStoreCluster
+tmpdir: /tmp
+mariadb_socket: /var/lib/mysql/mysql.sock
+mariadb_version: 10.4
+maxscale_version: 2.4
+dba_user: dba
+dba_pass: Demo_password1
+cross_engine_user: cej
+cross_engine_pass: Demo_password1

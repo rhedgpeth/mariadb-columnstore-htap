@@ -1,0 +1,40 @@
+
+---
+boost: boost
+cmake: cmake
+development_tools: "@Development tools"
+ethernet_interface: eth1
+expect: expect
+file: file
+git: git
+jemalloc: jemalloc
+libaio: libaio
+lxml: python-lxml
+lz4_devel: lz4-devel
+lz4: lz4
+mariadb_client: MariaDB-client
+mariadb_columnstore_engine: MariaDB-columnstore-engine
+mariadb_columnstore_platform: MariaDB-columnstore-platform
+mariadb_libs: mariadb-libs
+mariadb_server: MariaDB-server
+mlocate: mlocate
+mysql_python: MySQL-python
+nano: nano
+net_tools: net-tools
+nmap: nmap
+numactl_libs: numactl-libs
+openssl: openssl
+perl_DBI: perl-DBI
+perl: perl
+pip: python-pip
+pip3: python3-pip
+python_devel: python-devel
+readline_dev: readline-devel
+rsync: rsync
+snappy: snappy
+tcl: tcl
+tcp_wrappers_devel: tcp_wrappers-devel
+tzdata: tzdata
+unzip: unzip
+version: 7
+zlib: zlib

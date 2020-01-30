@@ -1,0 +1,59 @@
+[MaxScale]
+threads=auto
+passive=true
+
+[db1]
+type=server
+address={{ hostvars.pm1.ansible_host }}
+port=3306
+protocol=MariaDBBackend
+
+[mymonitor]
+type=monitor
+module=mariadbmon
+servers=db1
+user={{ dba_user }}
+password={{ dba_pass }}
+monitor_interval=1000ms
+
+[myservice]
+type=service
+router=readconnroute
+servers=db1
+user={{ dba_user }}
+password={{ dba_pass }}
+filters=firewall
+
+[mylistener]
+type=listener
+service=myservice
+protocol=MariaDBClient
+port=3306
+
+[replicationservice]
+type=service
+router=readconnroute
+servers=db1
+user={{ dba_user }}
+password={{ dba_pass }}
+filters=myreplicationfilter
+
+[replicationlistener]
+type=listener
+service=replicationservice
+protocol=MariaDBClient
+port=3309
+
+[myreplicationfilter]
+type=filter
+module=binlogfilter
+match=/[.]orders/
+rewrite_src=innodb
+rewrite_dest=columnstore
+
+[firewall]
+type=filter
+module=dbfwfilter
+action=block
+rules=/etc/maxscale.modules.d/rules.txt
+log_match=true

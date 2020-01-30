@@ -1,0 +1,5 @@
+*.retry
+DS_Store
+.vagrant
+*.bak
+ubuntu-bionic-*.log

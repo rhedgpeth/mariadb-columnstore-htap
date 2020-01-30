@@ -1,0 +1,159 @@
+---
+
+- hosts: "all"
+  become: true
+  become_user: root
+  vars_files:
+    - 'distro/{{ ansible_os_family|lower }}.yml'
+
+  tasks:
+
+  - name: "Checking For Existing MariaDB ColumnStore Installation"
+    stat:
+      path: /usr/bin/mcsadmin
+    register: stat_result
+
+  - name: "Stopping Existing MariaDB ColumnStore System"
+    shell: /usr/bin/mcsadmin shutdownSystem Force y
+    when: stat_result.stat.exists == True
+
+  - name: "Removing Existing ColumnStore Log Folders"
+    shell: rm -rf /var/log/mariadb
+    args:
+      warn: false
+    when: stat_result.stat.exists == True
+
+  - name: "Disabling firewalld"
+    systemd:
+      name: firewalld
+      state: stopped
+      enabled: False
+    when: ansible_os_family == 'RedHat'
+
+  - name: "Setting SELinux Permissive"
+    selinux:
+      policy: targeted
+      state: permissive
+    when: ansible_os_family == 'RedHat'
+
+  - name: "Installing Epel Release"
+    package:
+      name: epel-release
+      state: latest
+    when: ansible_os_family == 'RedHat'
+
+  - name: "Installing Python-Apt"
+    apt:
+      name: python-apt
+      state: latest
+      update_cache: yes
+    when: ansible_os_family == 'Debian'
+
+  - name: "Upgrading All Packages"
+    package:
+      name: '*'
+      state: latest
+
+  - name: "Installing Some Additional Software Packages"
+    package:
+      name: '{{ packages }}'
+      state: present
+    vars:
+      packages:
+      - '{{ boost }}'
+      - '{{ cmake }}'
+      - '{{ development_tools }}'
+      - '{{ expect }}'
+      - '{{ file }}'
+      - '{{ jemalloc }}'
+      - '{{ libaio }}'
+      - '{{ lxml }}'
+      - '{{ lz4 }}'
+      - '{{ lz4_devel }}'
+      - '{{ mlocate }}'
+      - '{{ nano }}'
+      - '{{ net_tools }}'
+      - '{{ nmap }}'
+      - '{{ numactl_libs }}'
+      - '{{ openssl }}'
+      - '{{ perl }}'
+      - '{{ perl_DBI }}'
+      - '{{ pip }}'
+      - '{{ pip3 }}'
+      - '{{ python_devel }}'
+      - '{{ readline_dev }}'
+      - '{{ rsync }}'
+      - '{{ snappy }}'
+      - '{{ tcl }}'
+      - '{{ tcp_wrappers_devel }}'
+      - '{{ tzdata }}'
+      - '{{ unzip }}'
+      - '{{ zlib }}'
+
+  - name: "Setting System Character Set"
+    command: localedef -i en_US -f UTF-8 en_US.UTF-8
+
+  - name: "Modifying /etc/rc.d/rc.local"
+    lineinfile:
+      path: /etc/rc.d/rc.local
+      line: '/usr/sbin/ifconfig eth0 txqueuelen 10000'
+      create: yes
+
+  - name: "Adjusting System Swappiness"
+    sysctl:
+      name: vm.swappiness
+      value: '10'
+      state: present
+
+  - name: "Adjusting System net.core.rmem_max"
+    sysctl:
+      name: net.core.rmem_max
+      value: '16777216'
+      state: present
+
+  - name: "Adjusting System net.core.wmem_max"
+    sysctl:
+      name: net.core.wmem_max
+      value: '16777216'
+      state: present
+
+  - name: "Adjusting System net.ipv4.tcp_rmem"
+    sysctl:
+      name: net.ipv4.tcp_rmem
+      value: '4096 87380 16777216'
+      state: present
+
+  - name: "Adjusting System net.ipv4.tcp_wmem"
+    sysctl:
+      name: net.ipv4.tcp_wmem
+      value: '4096 65536 16777216'
+      state: present
+
+  - name: "Adjusting System net.ipv4.tcp_no_metrics_save"
+    sysctl:
+      name: net.ipv4.tcp_no_metrics_save
+      value: '1'
+      state: present
+
+  - name: "Adjusting System net.core.netdev_max_backlog"
+    sysctl:
+      name: net.core.netdev_max_backlog
+      value: '2500'
+      state: present
+
+  - name: "Adjusting System vm.vfs_cache_pressure"
+    sysctl:
+      name: vm.vfs_cache_pressure
+      value: '10'
+      state: present
+
+  - name: "Getting MariaDB Enterprise Repo Information"
+    get_url:
+      url: https://dlm.mariadb.com/enterprise-release-helpers/mariadb_es_repo_setup
+      dest: /tmp/mariadb_es_repo_setup
+      mode: '0700'
+
+  - name: "Installing New MariaDB Repo"
+    shell: /tmp/mariadb_es_repo_setup --token={{ mariadb_token }} --mariadb-server-version=mariadb-{{ mariadb_version }} --mariadb-maxscale-version={{ maxscale_version }} --apply
+    args:
+      warn: false
