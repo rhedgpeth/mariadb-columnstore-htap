@@ -16,7 +16,7 @@ https://customers.mariadb.com/downloads/token/
 
 #### Setup
 
-* `git clone https://github.com/toddstoffel/htap_poc.git`
+* `git clone https://github.com/mariadb-corporation/mariadb-columnstore-htap.git`
 * `cd htap_poc`
 * `vagrant plugin install vagrant-vbguest`
 * `vagrant up`
