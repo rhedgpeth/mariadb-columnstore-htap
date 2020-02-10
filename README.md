@@ -17,7 +17,7 @@ https://customers.mariadb.com/downloads/token/
 #### Setup
 
 * `git clone https://github.com/mariadb-corporation/mariadb-columnstore-htap.git`
-* `cd htap_poc`
+* `cd mariadb-columnstore-htap`
 * `vagrant plugin install vagrant-vbguest`
 * `vagrant up`
 * `ansible-playbook provision.yml -e "mariadb_token=<YOUR_TOKEN_HERE>"`
